@@ -1,0 +1,17 @@
+# linode apache-cassandra ansible playbook
+
+# linodes
+- name: configure apache-cassandra cluster
+  hosts: all
+  any_errors_fatal: true
+  user: root
+  vars:
+    local_home: "{{ lookup('env','HOME') }}"
+  vars_files:
+    - group_vars/apache-cassandra/vars
+    - group_vars/apache-cassandra/secret_vars
+  
+  roles:
+    - common      
+    - apache-cassandra
+    - post

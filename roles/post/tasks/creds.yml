@@ -1,0 +1,28 @@
+---
+# roles/post/tasks/motd.yml
+
+- name: copy MOTD template to /etc/motd
+  template:
+    src: templates/motd.j2
+    dest: /etc/motd
+
+- name: writing deployment credentils locally
+  blockinfile:
+    path: "/home/{{ sudo_username }}/.credentials"
+    create: yes
+    owner: "{{ sudo_username }}"
+    group: "{{ sudo_username }}"
+    mode: 0644    
+    block: |
+      # system user 
+      user: {{ sudo_username }}
+      sudo_user_password: {{ sudo_password }}
+      # SSL Passwords 
+      ca_password= {{ ca_password }}
+      keystore_password= {{ keystore_password }}
+      truststore_password= {{ truststore_password }}
+      # DB creds
+      db_user= {{ db_user }}
+      db_password= {{ db_password }}
+
+      PLEASE REMOVE THIS FILE ONCE YOU'VE LOGGED THESE PASSWORDS IN A SECURE PASSWORD MANAGER!
