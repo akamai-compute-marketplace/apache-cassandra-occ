@@ -5,6 +5,7 @@
   hosts: all
   any_errors_fatal: true
   user: root
+  gather_facts: true
   vars:
     local_home: "{{ lookup('env','HOME') }}"
   vars_files:
@@ -14,4 +15,4 @@
   roles:
     - common      
     - apache-cassandra
-    - post
+    #- post

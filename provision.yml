@@ -5,27 +5,27 @@
       - group_vars/apache-cassandra/vars
       - group_vars/apache-cassandra/secret_vars
   
-  vars:
-    count: '{{ cluster_size - 1 }}' # UDF
+  #vars:
+  #  count: '{{ cluster_size - 1 }}' # UDF
        
   tasks:
   # generate playbook secrets
-  - name: generating playbook secrets
-    lineinfile:
-      insertafter: EOF
-      path: group_vars/apache-cassandra/vars
-      line: |
-        truststore_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
-        keystore_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
-        ca_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
-        sudo_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
-        db_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
-    no_log: true
+#  - name: generating playbook secrets
+#    lineinfile:
+#      insertafter: EOF
+#      path: group_vars/apache-cassandra/vars
+#      line: |
+#        truststore_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
+#        keystore_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
+#        ca_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
+#        sudo_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
+#        db_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
+#    no_log: true
 
   - name: creating apache-cassandra cluster
     linode.cloud.instance:
-      label: '{{ instance_prefix }}{{ item | int + 1 }}'
-      api_token: '{{ token }}'
+      label: '{{ instance_prefix }}{{ item | int + 1 }}-{{ uuid }}'
+      api_token: '{{ api_token }}'
       type: '{{ type }}'
       region: '{{ region }}'
       image: '{{ image }}'
@@ -33,31 +33,17 @@
       authorized_keys: '{{ ssh_keys }}'
       private_ip: true
       #stackscript_id: 1142293
-      ua_prefix: 'marketplace-apache-cassandra-occ'      
+      #ua_prefix: 'marketplace-apache-cassandra-occ'      
       tags: '{{ linode_tags }}'
       state: present
-    register: linode
-    with_sequence: count='{{ count }}'
+    with_sequence: count='{{ cluster_count - 1 }}'
 
   - name: get info about the instances
     linode.cloud.instance_info:
-      api_token: '{{ token }}'
-      label: '{{ instance_prefix }}{{ item }}'
-    register: info
-    with_sequence: count='{{ cluster_size }}'
-
-  # read just count
-  - name: set facts for cluster
-    set_fact:
-      # hostnames
-      cassandra{{ count + 1 }}_hostname: '{{ info.results[count].instance.label }}'
-      # public ips
-      cassandra{{ count + 1 }}_ip1: '{{ info.results[count].instance.ipv4[0] }}'
-      # private ips
-      cassandra{{ count + 1 }}_priv1: '{{ info.results[count].instance.ipv4[1] }}'
-    loop: "{{ info.results }}"
-    loop_control:
-      index_var: count
+      api_token: '{{ api_token }}'
+      label: '{{ instance_prefix }}-{{ item | int }}-{{ uuid }}'
+    register: cluster_info
+    with_sequence: count='{{ cluster_count }}'
 
   - name: update group_vars
     blockinfile:
@@ -66,19 +52,14 @@
       block: |
         #jinja2: trim_blocks:False
         cassandra_data:
-          results:
-            {%- for count in range(cluster_size) %}
-            - cassandra{{ count + 1 }}:
+          server:
+            {%- for count in range(cluster_count | int) %}
+            - cassandra-{{ count }}:
               instance:
-                hostname: {{ info.results[count].instance.label | replace('_', '-') }}
-                ip_pub1: {{ info.results[count].instance.ipv4[0] }}
-                ip_priv1: {{ info.results[count].instance.ipv4[1] }}
+                hostname: {{ cluster_info.results[count].instance.label | replace('_', '-') }}
+                ip_pub1: {{ cluster_info.results[count].instance.ipv4[0] }}
+                ip_priv1: {{ cluster_info.results[count].instance.ipv4[1] }}
             {%- endfor %}
-    loop: "{{ info.results }}"
-
-  - name: test connectivity
-    ping: 
-    with_items: "{{ info.results }}"
 
   - name: update inventory
     blockinfile:
@@ -86,10 +67,10 @@
       marker: "# {mark} CASSANDRA LINODES"
       block: |
         #jinja2: trim_blocks:False
-        [cassandra_servers]
+        [cassandra_cluster]
         localhost ansible_connection=local user=root
-        {%- for count in range(cluster_size - 1) %}
-        {{ info.results[count + 1].instance.ipv4[0] }}
+        {%- for count in range(cluster_count - 1) %}
+        {{ cluster_info.results[count + 1].instance.ipv4[0] }}
         {%- endfor %}
 
   - name: wait for port 22 to become open
@@ -99,4 +80,4 @@
       search_regex: OpenSSH
       delay: 10
     connection: local
-    with_items: "{{ info.results }}"
+    with_items: "{{ cluster_info.results }}"

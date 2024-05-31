@@ -36,5 +36,3 @@
   command: >
     cqlsh {{ cassandra_data.results[1].instance.hostname }} -u {{ db_user }} -p {{ db_password }} -e "ALTER ROLE cassandra WITH SUPERUSER = false AND LOGIN = false;"
   delegate_to: "{{ groups['cassandra_servers'][0] }}"
-
-

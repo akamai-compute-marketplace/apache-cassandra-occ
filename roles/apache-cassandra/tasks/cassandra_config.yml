@@ -1,0 +1,44 @@
+---
+- name: creating cassandra config backup
+  copy:
+    src: "{{ cassandra_config }}"
+    dest: "{{ cassandra_config }}.bak"
+    remote_src: yes
+    owner: cassandra
+    group: cassandra
+    mode: '0644'
+
+- name: generating config secrets
+  set_fact:
+    keystore_password: "{{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}"
+    truststore_password: "{{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}"
+  no_log: true
+  run_once: true
+  delegate_to: "{{ groups['cassandra_cluster'][0] }}"
+
+- name: updating cassandra.yaml 
+  template:
+    src: cassandra.yaml.j2
+    dest: "{{ cassandra_config }}"
+    owner: cassandra
+    group: cassandra
+    mode: '0644'
+
+- name: stop cassandra service
+  systemd:
+    name: cassandra
+    state: stopped
+
+# removes sample data
+- name: remove cassandra data directory 
+  file:
+    path: /var/lib/cassandra/
+    state: absent
+
+- name: recreate /var/lib/cassandra directory
+  file:
+    path: /var/lib/cassandra
+    state: directory
+    owner: cassandra
+    group: cassandra
+    mode: '0755'

@@ -36,7 +36,7 @@ function secrets {
   echo "${VAULT_PASS}" > ./.vault-pass
   cat << EOF > ${SECRET_VARS_PATH}
 `ansible-vault encrypt_string "${TEMP_ROOT_PASS}" --name 'root_pass'`
-`ansible-vault encrypt_string "${TOKEN_PASSWORD}" --name 'token'`
+`ansible-vault encrypt_string "${TOKEN_PASSWORD}" --name 'api_token'`
 EOF
 }
 
@@ -76,10 +76,11 @@ function ansible:build {
   region: ${LINODE_PARAMS[1]}
   image: ${LINODE_PARAMS[2]}
   linode_tags: ${TAGS}
+  uuid: ${UUID}
   # sudo user
   sudo_username: ${SUDO_USERNAME}
   username: ${SUDO_USERNAME}
-  cluster_size: ${CLUSTER_SIZE}
+  cluster_count: ${CLUSTER_COUNT}
   # db user
   db_user: ${DB_USER}
   # ssl/tls
@@ -103,8 +104,8 @@ EOF
 }
 
 function ansible:deploy {
-  ansible-playbook -vvvv provision.yml
-  ansible-playbook -vvvv -i hosts site.yml --extra-vars "root_password=${ROOT_PASS} add_keys_prompt=${ADD_SSH_KEYS}"
+  ansible-playbook -v provision.yml
+  ansible-playbook -v -i hosts site.yml --extra-vars "root_password=${ROOT_PASS} add_keys_prompt=${ADD_SSH_KEYS}"
 }
 
 # main

@@ -1,17 +1,14 @@
 ---
 # roles/apache-cassandra/tasks/main.yml
 
-- name: configure hostname
-  import_tasks: hostname.yml 
-
 - name: install cassandra
-  import_tasks: install.yml
+  import_tasks: cassandra_install.yml
 
 - name: configure cassandra
-  import_tasks: cassandra.yml
+  import_tasks: cassandra_config.yml
 
-- name: ssl
-  import_tasks: final-ssl.yml
+#- name: ssl
+#  import_tasks: final-ssl.yml
 
-- name: post install updates
-  import_tasks: users.yml
+#- name: post install updates
+#  import_tasks: users.yml

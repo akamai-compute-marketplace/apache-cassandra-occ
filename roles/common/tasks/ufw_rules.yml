@@ -11,48 +11,48 @@
     rule: allow
     port: '7000'
     proto: tcp
-    from_ip: "{{ item.instance.ip_priv1 }}"
-  loop: "{{ cassandra_data.results }}"
+    from_ip: "{{ instance.ip_priv1 }}"
+  loop: "{{ cassandra_data.server }}"
 
 - name: Allow cassandra private access to tcp port 7001
   community.general.ufw:
     rule: allow
     port: '7001'
     proto: tcp
-    from_ip: "{{ item.instance.ip_priv1 }}"
-  loop: "{{ cassandra_data.results }}"
+    from_ip: "{{ instance.ip_priv1 }}"
+  loop: "{{ cassandra_data.server }}"
 
 - name: Allow cassandra private access to tcp port 7199
   community.general.ufw:
     rule: allow
     port: '7199'
     proto: tcp
-    from_ip: "{{ item.instance.ip_priv1 }}"
-  loop: "{{ cassandra_data.results }}"
+    from_ip: "{{ instance.ip_priv1 }}"
+  loop: "{{ cassandra_data.server }}"
 
 - name: Allow cassandra private access to tcp port 9042
   community.general.ufw:
     rule: allow
     port: '9042'
     proto: tcp
-    from_ip: "{{ item.instance.ip_priv1 }}"
-  loop: "{{ cassandra_data.results }}"
+    from_ip: "{{ instance.ip_priv1 }}"
+  loop: "{{ cassandra_data.server }}"
 
 - name: Allow cassandra private access to tcp port 9160
   community.general.ufw:
     rule: allow
     port: '9160'
     proto: tcp
-    from_ip: "{{ item.instance.ip_priv1 }}"
-  loop: "{{ cassandra_data.results }}"
+    from_ip: "{{ instance.ip_priv1 }}"
+  loop: "{{ cassandra_data.server }}"
 
 - name: Allow cassandra private access to tcp port 9142
   community.general.ufw:
     rule: allow
     port: '9142'
     proto: tcp
-    from_ip: "{{ item.instance.ip_priv1 }}"
-  loop: "{{ cassandra_data.results }}"
+    from_ip: "{{ instance.ip_priv1 }}"
+  loop: "{{ cassandra_data.server }}"
 
 # async to avoid connection disruption
 - name: Enable ufw
