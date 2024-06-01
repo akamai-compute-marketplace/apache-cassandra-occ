@@ -24,7 +24,7 @@
 
   - name: creating apache-cassandra cluster
     linode.cloud.instance:
-      label: '{{ instance_prefix }}{{ item | int + 1 }}-{{ uuid }}'
+      label: '{{ instance_prefix }}-{{ item | int + 1 }}-{{ uuid }}'
       api_token: '{{ api_token }}'
       type: '{{ type }}'
       region: '{{ region }}'

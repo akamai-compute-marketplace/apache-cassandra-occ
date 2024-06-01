@@ -10,7 +10,7 @@
     dest: "/etc/apt/keyrings/apache-cassandra.asc"
 
 - name: adding cassandra repository
-  apt_reposistory:
+  apt_repository:
     repo: "deb [signed-by=/etc/apt/keyrings/apache-cassandra.asc] https://debian.cassandra.apache.org 41x main"
     state: present
 

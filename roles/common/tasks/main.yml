@@ -19,7 +19,7 @@
       #jinja2: trim_blocks:False
       # Cassandra
       {%- for count in range(cluster_count | int) %}
-      {{ cassandra_data.server[count].instance.ip_priv1 }} {{ cassandra_data.results[count].instance.hostname }}
+      {{ cassandra_data.server[count].instance.ip_priv1 }} {{ cassandra_data.server[count].instance.hostname }}
       {%- endfor %}
 
 - name: apt update

@@ -549,9 +549,9 @@ seed_provider:
     parameters:
       # seeds is actually a comma-delimited list of addresses.
       # Ex: "<ip1>,<ip2>,<ip3>"
-      {%- for count in range(cluster_count | int) %} 
-      - seeds: "{{ cassandra_data.server.instance.ip_priv1 | join (,)}}"
-      {%- endfor %}
+      {%- for count in (((cluster_count | int) stride 1) join ,) %}
+    - seeds: "{{ cassandra_data.server.cassandra[count].instance.ip_priv1 }}" 
+      {%- endfor %} 
 
 # For workloads with more data than can fit in memory, Cassandra's
 # bottleneck will be reads that need to fetch data from
