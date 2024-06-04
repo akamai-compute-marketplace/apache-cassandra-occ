@@ -7,8 +7,8 @@
 - name: configure cassandra
   import_tasks: cassandra_config.yml
 
-#- name: ssl
-#  import_tasks: final-ssl.yml
+- name: ssl
+  import_tasks: final-ssl.yml
 
 #- name: post install updates
 #  import_tasks: users.yml
