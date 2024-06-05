@@ -1,0 +1,378 @@
+---
+# create cluster ssl dir
+- name: create ssl directory
+  file:
+    path: /etc/cassandra/ssl
+    state: directory
+    owner: cassandra
+    group: cassandra
+    mode: 0755
+
+- name: set password for ca_key
+  set_fact:
+    ca_password: "{{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}"
+    cachable: true
+  no_log: true
+  run_once: true
+  delegate_to: "{{ groups['cassandra_cluster'][0] }}"
+
+# create root ca for signing
+- name: generate ca key
+  community.crypto.openssl_privatekey:
+    path: '{{ cassandra_cakey }}'
+    passphrase: '{{ ca_password }}'
+    cipher: auto
+    return_content: true
+    owner: cassandra
+    group: cassandra
+  no_log: true
+  register: ca_key
+  run_once: true
+  delegate_to: "{{ groups['cassandra_cluster'][0] }}"
+
+- name: generate ca csr
+  community.crypto.openssl_csr:
+    path: '{{ cassandra_cacsr }}'
+    privatekey_path: '{{ cassandra_cakey }}'
+    privatekey_passphrase: '{{ ca_password }}'
+    country_name: '{{ country_name }}'
+    state_or_province_name: '{{ state_or_province_name }}'
+    locality_name: '{{ locality_name }}'
+    organization_name: '{{ organization_name }}'
+    email_address: '{{ email_address }}'
+    common_name: '{{ ca_common_name }}'
+    use_common_name_for_san: false
+    basic_constraints:
+      - 'CA:TRUE'
+    basic_constraints_critical: yes
+    key_usage:
+      - keyCertSign
+    key_usage_critical: true
+    owner: cassandra
+    group: cassandra
+  register: ca_csr
+  run_once: true
+  delegate_to: "{{ groups['cassandra_cluster'][0] }}"
+
+- name: generate ca crt
+  community.crypto.x509_certificate:
+    path: '{{ cassandra_cacert }}'
+    privatekey_path: '{{ cassandra_cakey }}'
+    privatekey_passphrase: '{{ ca_password }}'
+    csr_path: '{{ cassandra_cacsr }}'
+    selfsigned_not_after: +3650d
+    provider: selfsigned
+    owner: cassandra
+    group: cassandra
+    mode: '0640'
+    return_content: true
+  register: ca_crt
+  run_once: true
+  delegate_to: "{{ groups['cassandra_cluster'][0] }}"
+
+# Generate public/private key pair and keystore for each node (one for each node in cluster)
+- name: generate node private keys
+  community.crypto.openssl_privatekey:
+    path: '{{ cassandra_ssl_path }}/node.key.pem'
+    owner: cassandra
+    group: cassandra
+
+- name: generate external client keys
+  community.crypto.openssl_privatekey:
+    path: '{{ cassandra_ssl_path }}/client{{ item }}.key.pem'
+    owner: cassandra
+    group: cassandra
+  with_sequence: count="{{ client_count }}"
+  run_once: true
+  delegate_to: "{{ groups['cassandra_cluster'][0] }}"
+
+- name: generate internal client keys
+  community.crypto.openssl_privatekey:
+    path: '{{ cassandra_ssl_path }}/{{ cassandra_data.server[count].instance.hostname }}client.key.pem'
+    owner: cassandra
+    group: cassandra
+  run_once: true
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['cassandra_cluster'] }}"
+  loop_control:
+    index_var: count
+
+- name: generate node csrs
+  community.crypto.openssl_csr:
+    path: '{{ cassandra_ssl_path }}/node.csr'
+    privatekey_path: '{{ cassandra_ssl_path }}/node.key.pem'
+    common_name: 'Cassandra Server'
+    use_common_name_for_san: false
+    basic_constraints: "CA:FALSE"
+    authority_cert_serial_number: 1
+    owner: cassandra
+    group: cassandra
+  register: node_csr
+
+- name: generate external client csrs
+  community.crypto.openssl_csr:
+    path: '{{ cassandra_ssl_path }}/client{{ item }}.csr'
+    privatekey_path: '{{ cassandra_ssl_path }}/client{{ item }}.key.pem'
+    common_name: 'Cassandra External Client'
+    basic_constraints: "CA:FALSE"
+    authority_cert_serial_number: 1
+    owner: cassandra
+    group: cassandra
+  run_once: true
+  with_sequence: count="{{ client_count }}"
+  delegate_to: "{{ groups['cassandra_cluster'][0] }}"
+
+- name: generate internal client csrs
+  community.crypto.openssl_csr:
+    path: '{{ cassandra_ssl_path }}/{{ cassandra_data.server[count].instance.hostname }}client.csr'
+    privatekey_path: '{{ cassandra_ssl_path }}/{{ cassandra_data.server[count].instance.hostname }}client.key.pem'
+    common_name: 'Cassandra Internal Client'
+    basic_constraints: "CA:FALSE"
+    authority_cert_serial_number: 1
+    owner: cassandra
+    group: cassandra
+  run_once: true
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['cassandra_cluster'] }}"
+  loop_control:
+    index_var: count
+
+# sign node certificate with rootCa for each node
+- name: generate node certificates
+  community.crypto.x509_certificate:
+    path: '{{ cassandra_ssl_path }}/node.crt.pem'
+    privatekey_path: '{{ cassandra_ssl_path }}/node.key.pem'
+    csr_path: '{{ cassandra_ssl_path }}/node.csr'
+    ownca_content: "{{ lookup('ansible.builtin.file', '/etc/cassandra/ssl/ca.crt') }}"
+    ownca_privatekey_content: "{{ lookup('ansible.builtin.file', '/etc/cassandra/ssl/ca.key') }}"
+    ownca_privatekey_passphrase: '{{ ca_password }}'
+    provider: ownca
+    owner: cassandra
+    group: cassandra
+
+- name: generate external client certificates
+  community.crypto.x509_certificate:
+    path: '{{ cassandra_ssl_path }}/client{{ item }}.crt.pem'
+    privatekey_path: '{{ cassandra_ssl_path }}/client{{ item }}.key.pem'
+    csr_path: '{{ cassandra_ssl_path }}/client{{ item }}.csr'
+    ownca_content: "{{ lookup('ansible.builtin.file', '/etc/cassandra/ssl/ca.crt') }}"
+    ownca_privatekey_content: "{{ lookup('ansible.builtin.file', '/etc/cassandra/ssl/ca.key') }}"
+    ownca_privatekey_passphrase: '{{ ca_password }}'
+    provider: ownca
+    owner: cassandra
+    group: cassandra
+  run_once: true
+  with_sequence: count="{{ client_count }}"
+  delegate_to: "{{ groups['cassandra_cluster'][0] }}"
+
+- name: generate internal client certificates
+  community.crypto.x509_certificate:
+    path: '{{ cassandra_ssl_path }}/{{ cassandra_data.server[count].instance.hostname }}client.crt.pem'
+    privatekey_path: '{{ cassandra_ssl_path }}/{{ cassandra_data.server[count].instance.hostname }}client.key.pem'
+    csr_path: '{{ cassandra_ssl_path }}/{{ cassandra_data.server[count].instance.hostname }}client.csr'
+    ownca_content: "{{ lookup('ansible.builtin.file', '/etc/cassandra/ssl/ca.crt') }}"
+    ownca_privatekey_content: "{{ lookup('ansible.builtin.file', '/etc/cassandra/ssl/ca.key') }}"
+    ownca_privatekey_passphrase: '{{ ca_password }}'
+    provider: ownca
+    owner: cassandra
+    group: cassandra
+  run_once: true
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['cassandra_servers'] }}"
+  loop_control:
+    index_var: count
+
+# Import root ca certificate to each node keystore
+- name: import CA cert to node keystores
+  community.general.java_cert:
+    cert_content: "{{ lookup('ansible.builtin.file', '/etc/cassandra/ssl/ca.crt') }}"
+    keystore_path: "{{ cassandra_ssl_path }}/{{ cassandra_data.server[count].instance.hostname }}-keystore.jks"
+    keystore_pass: '{{ keystore_password }}'
+    keystore_create: true 
+    trust_cacert: true
+    cert_alias: '{{ ca_common_name }}'
+  run_once: true
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['cassandra_cluster'] }}"
+  loop_control:
+    index_var: count
+
+- name: import CA cert to external client keystore
+  community.general.java_cert:
+    cert_content: "{{ lookup('ansible.builtin.file', '/etc/cassandra/ssl/ca.crt') }}"
+    keystore_path: "{{ cassandra_ssl_path }}/client{{ item }}.keystore.jks"
+    keystore_pass: '{{ keystore_password }}'
+    keystore_create: true 
+    trust_cacert: true
+    cert_alias: '{{ ca_common_name }}'
+  with_sequence: count="{{ client_count }}"
+  run_once: true
+  delegate_to: "{{ groups['cassandra_cluster'][0] }}"
+
+- name: import CA cert internal client keystore
+  community.general.java_cert:
+    cert_content: "{{ lookup('ansible.builtin.file', '/etc/cassandra/ssl/ca.crt') }}"
+    keystore_path: "{{ cassandra_ssl_path }}/{{ cassandra_data.server[count].instance.hostname }}client-keystore.jks"
+    keystore_pass: '{{ keystore_password }}'
+    keystore_create: true 
+    trust_cacert: true
+    cert_alias: '{{ ca_common_name }}client'
+  run_once: true
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['cassandra_cluster'] }}"
+  loop_control:
+    index_var: count
+
+# Import node's signed certificate into node keystore for each node
+- name: import signed node certs
+  community.general.java_cert:
+    cert_path: "{{ cassandra_ssl_path }}/node.crt.pem"
+    keystore_path: "{{ cassandra_ssl_path }}/{{ cassandra_data.server[count].instance.hostname }}-keystore.jks"
+    keystore_pass: '{{ keystore_password }}'
+    cert_alias: '{{ cassandra_data.server[count].instance.hostname }}'
+  run_once: true
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['cassandra_cluster'] }}"
+  loop_control:
+    index_var: count
+
+- name: import signed client certs
+  community.general.java_cert:
+    cert_path: "{{ cassandra_ssl_path }}/client{{ item }}.crt.pem"
+    keystore_path: "{{ cassandra_ssl_path }}/client{{ item }}.keystore.jks"
+    keystore_pass: '{{ keystore_password }}'
+    cert_alias: 'client{{ item }}'
+  with_sequence: count="{{ client_count }}"
+  run_once: true
+  delegate_to: "{{ groups['cassandra_cluster'][0] }}"
+
+- name: import signed internal client certs
+  community.general.java_cert:
+    cert_path: '{{ cassandra_ssl_path }}/{{ cassandra_data.server[count].instance.hostname }}client.crt.pem'
+    keystore_path: "{{ cassandra_ssl_path }}/{{ cassandra_data.server[count].instance.hostname }}client-keystore.jks"
+    keystore_pass: '{{ keystore_password }}'
+    cert_alias: '{{ cassandra_data.server[count].instance.hostname }}client'
+  run_once: true
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['cassandra_cluster'] }}"
+  loop_control:
+    index_var: count
+
+#  client keystore > pkcs12
+#  needed to use cqlsh, keystores are commonly used for java drivers
+#
+# --> test generating cert in pem format rather than convert
+#
+# - name: convert client keystore to pk12
+#   command: >
+#     keytool -importkeystore
+#     -srckeystore "client{{ item }}.keystore.jks"
+#     -destkeystore "client{{ item }}.p12"
+#     -deststoretype PKCS12
+#     -srcstorepass "{{ keystore_password }}"
+#     -deststorepass "{{ keystore_password }}"
+#   args:
+#     chdir: "{{ cassandra_ssl_path }}"
+#   with_sequence: count="{{ client_count }}"
+#   run_once: true
+#   delegate_to: localhost
+
+# - name: convert internal client keystore to pk12
+#   command: >
+#     keytool -importkeystore
+#     -srckeystore "{{ cassandra_data.results[count].instance.hostname }}client-keystore.jks"
+#     -destkeystore "{{ cassandra_data.results[count].instance.hostname }}client.p12"
+#     -deststoretype PKCS12
+#     -srcstorepass "{{ keystore_password }}"
+#     -deststorepass "{{ keystore_password }}"
+#   args:
+#     chdir: "{{ cassandra_ssl_path }}"
+#   run_once: true
+#   delegate_to: "{{ item }}"
+#   loop: "{{ groups['cassandra_servers'] }}"
+#   loop_control:
+#     index_var: count
+
+# - name: generate client pem cert
+#   command: >
+#     openssl pkcs12
+#     -in "client{{ item }}.p12"
+#     -nokeys 
+#     -out "client{{ item }}.cert.pem"
+#     -passin pass:"{{ keystore_password }}"
+#   args:
+#     chdir: "{{ cassandra_ssl_path }}"
+#   run_once: true
+#   with_sequence: count="{{ client_count }}"
+#   delegate_to: localhost
+
+# - name: generate internal client pem cert
+#   command: >
+#     openssl pkcs12
+#     -in "{{ cassandra_data.results[count].instance.hostname }}client.p12"
+#     -nokeys 
+#     -out "{{ cassandra_data.results[count].instance.hostname }}client.cert.pem"
+#     -passin pass:"{{ keystore_password }}"
+#   args:
+#     chdir: "{{ cassandra_ssl_path }}"
+#   run_once: true
+#   delegate_to: "{{ item }}"
+#   loop: "{{ groups['cassandra_servers'] }}"
+#   loop_control:
+#     index_var: count
+
+# - name: generate client pem key
+#   command: >
+#     openssl pkcs12
+#     -in "client{{ item }}.p12"
+#     -nodes -nocerts 
+#     -out "client{{ item }}.cert.key"
+#     -passin pass:"{{ keystore_password }}"
+#   args:
+#     chdir: "{{ cassandra_ssl_path }}"
+#   run_once: true
+#   with_sequence: count="{{ client_count }}"
+#   delegate_to: localhost
+
+# - name: generate internal client pem key
+#   command: >
+#     openssl pkcs12
+#     -in "{{ cassandra_data.results[count].instance.hostname }}client.p12"
+#     -nodes -nocerts
+#     -out "{{ cassandra_data.results[count].instance.hostname }}client.key.pem"
+#     -passin pass:"{{ keystore_password }}"
+#   args:
+#     chdir: "{{ cassandra_ssl_path }}"
+#   run_once: true
+#   delegate_to: "{{ item }}"
+#   loop: "{{ groups['cassandra_servers'] }}"
+#   loop_control:
+#     index_var: count
+
+# Truststore
+- name: add ca to truststore
+  community.general.java_cert:
+    cert_path: '{{ cassandra_cacert }}'
+    keystore_path: '{{ cassandra_truststore }}'
+    keystore_pass: '{{ truststore_password }}'
+    keystore_create: true
+    state: present
+    cert_alias: '{{ ca_common_name }}'
+    trust_cacert: true
+    owner: cassandra
+    group: cassandra
+  run_once: true
+  delegate_to: "{{ groups['cassandra_cluster'][0] }}"
+
+- name: propagate truststore to cluster
+  copy:
+    src: '{{ cassandra_truststore }}'
+    dest: '{{ cassandra_truststore }}'
+    owner: cassandra
+    group: cassandra
+
+# restart cassandra
+- name: restart cassandra service
+  systemd:
+    name: cassandra
+    state: started
