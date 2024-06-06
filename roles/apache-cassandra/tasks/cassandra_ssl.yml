@@ -104,6 +104,7 @@
     common_name: 'Cassandra Server'
     use_common_name_for_san: false
     basic_constraints: "CA:FALSE"
+    authority_cert_issuer: "email:{{ email_address }}"
     authority_cert_serial_number: 1
     owner: cassandra
     group: cassandra
@@ -115,6 +116,7 @@
     privatekey_path: '{{ cassandra_ssl_path }}/client{{ item }}.key.pem'
     common_name: 'Cassandra External Client'
     basic_constraints: "CA:FALSE"
+    authority_cert_issuer: "email:{{ email_address }}"
     authority_cert_serial_number: 1
     owner: cassandra
     group: cassandra
@@ -128,6 +130,7 @@
     privatekey_path: '{{ cassandra_ssl_path }}/{{ cassandra_data.server[count].instance.hostname }}client.key.pem'
     common_name: 'Cassandra Internal Client'
     basic_constraints: "CA:FALSE"
+    authority_cert_issuer: "email:{{ email_address }}"
     authority_cert_serial_number: 1
     owner: cassandra
     group: cassandra
