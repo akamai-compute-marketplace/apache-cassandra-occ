@@ -2,10 +2,10 @@
 username = {{ db_user }}
 
 [connection]
-hostname = {{ cassandra_data.results[count].instance.hostname }}
+hostname = {{ cassandra_data.server[count].instance.hostname }}
 port = 9042
 
 [ssl]
 certfile = /etc/cassandra/ssl/ca.crt
-userkey = /etc/cassandra/ssl/{{ cassandra_data.results[count].instance.hostname }}client.key.pem
-usercert = /etc/cassandra/ssl/{{ cassandra_data.results[count].instance.hostname }}client.cert.pem
+userkey = /etc/cassandra/ssl/{{ cassandra_data.server[count].instance.hostname }}client.key.pem
+usercert = /etc/cassandra/ssl/{{ cassandra_data.server[count].instance.hostname }}client.cert.pem

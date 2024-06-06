@@ -134,7 +134,7 @@ batchlog_replay_throttle: 1024KiB
 #   users. It keeps usernames and hashed passwords in system_auth.roles table.
 #   Please increase system_auth keyspace replication factor if you use this authenticator.
 #   If using PasswordAuthenticator, CassandraRoleManager must also be used (see below)
-authenticator: AllowAllAuthenticator
+authenticator: PasswordAuthenticator
 
 # Authorization backend, implementing IAuthorizer; used to limit access/provide permissions
 # Out of the box, Cassandra provides org.apache.cassandra.auth.{AllowAllAuthorizer,
@@ -549,7 +549,7 @@ seed_provider:
     parameters:
       # seeds is actually a comma-delimited list of addresses.
       # Ex: "<ip1>,<ip2>,<ip3>"
-    - seeds:"{%- for count in range (cluster_count) %}{%- set addr4 = cassandra_data.server[count].instance.ip_priv1 %}{{ addr4 }},{%- if loop.last %}{{ addr4 }}{% endif %}{% endfor %}"
+    - seeds:"{%- for count in range (cluster_count - 1) %}{%- set addr4 = cassandra_data.server[count].instance.ip_priv1 %}{{ addr4 }},{%- if loop.last %}{{ addr4 }}{% endif %}{% endfor %}"
  
 # For workloads with more data than can fit in memory, Cassandra's
 # bottleneck will be reads that need to fetch data from
@@ -744,7 +744,7 @@ storage_port: 7000
 # server_encryption_options (see below). As of cassandra 4.0, this property is deprecated
 # as a single port can be used for either/both secure and insecure connections.
 # For security reasons, you should not expose this port to the internet. Firewall it if needed.
-ssl_storage_port: 7001
+# ssl_storage_port: 7001
 
 # Address or interface to bind to and tell other Cassandra nodes to connect to.
 # You _must_ change this if you want multiple nodes to be able to communicate!
@@ -773,7 +773,7 @@ listen_address: {{ ansible_facts.all_ipv4_addresses[1] }}
 
 # Address to broadcast to other Cassandra nodes
 # Leaving this blank will set it to the same value as listen_address
-# broadcast_address: 1.2.3.4
+# broadcast_address: 1.2.3.4 
 
 # When using multiple physical network interfaces, set this
 # to true to listen on broadcast_address in addition to
@@ -1270,7 +1270,7 @@ slow_query_log_timeout: 500ms
 #
 # You can use a custom Snitch by setting this to the full class name
 # of the snitch, which will be assumed to be on your classpath.
-endpoint_snitch: SimpleSnitch
+endpoint_snitch: GossipingPropertyFileSnitch
 
 # controls how often to perform the more expensive part of host score
 # calculation
@@ -1342,13 +1342,13 @@ server_encryption_options:
   # Verify that the host name in the certificate matches the connected host
   require_endpoint_verification: false
   # More advanced defaults:
-  # protocol: TLS
-  # store_type: JKS
-  # cipher_suites: [
+  protocol: TLS
+  store_type: JKS
+   cipher_suites: [
   #   TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
   #   TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
   #   TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA, TLS_RSA_WITH_AES_128_GCM_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA,
-  #   TLS_RSA_WITH_AES_256_CBC_SHA
+      TLS_RSA_WITH_AES_256_CBC_SHA
   # ]
 
 # Configure client-to-server encryption.
@@ -1386,11 +1386,11 @@ client_encryption_options:
   # More advanced defaults:
   protocol: TLS
   store_type: JKS
-  # cipher_suites: [
+    cipher_suites: [
   #   TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
   #   TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
   #   TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA, TLS_RSA_WITH_AES_128_GCM_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA,
-  #   TLS_RSA_WITH_AES_256_CBC_SHA
+      TLS_RSA_WITH_AES_256_CBC_SHA
   # ]
 
 # internode_compression controls whether traffic between nodes is

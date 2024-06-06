@@ -1,7 +1,9 @@
 # Install Cassandra  
 - name: install java depends
   apt: 
-    pkg: openjdk-8-jdk=8u402-ga-2ubuntu1~22.04
+    pkg: 
+      - openjdk-11-jdk
+      - openjdk-11-jdk-headless
     state: present
 
 - name: download Apache Cassandra GPG key

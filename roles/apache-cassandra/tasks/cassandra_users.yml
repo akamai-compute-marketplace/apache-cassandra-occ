@@ -6,7 +6,6 @@
   delay: 20  
   until: >
     (nodetool_output.stdout | regex_findall('UN') | length) >= 3
-  delegate_to: localhost
 
 - name: create cassandra directory
   file:

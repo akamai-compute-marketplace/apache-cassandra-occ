@@ -10,5 +10,5 @@
 - name: ssl
   import_tasks: cassandra_ssl.yml
 
-#- name: post install updates
-#  import_tasks: users.yml
+- name: post install updates
+  import_tasks: cassandra_users.yml
