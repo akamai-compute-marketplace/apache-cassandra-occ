@@ -22,7 +22,15 @@
     owner: cassandra
     group: cassandra
     mode: '0755'
-  
+
+- name: database user secret
+  set_fact:
+    db_password: "{{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}"
+    cachable: true
+  no_log: true
+  run_once: true
+  delegate_to: "{{ groups['cassandra_cluster'][0] }}"
+
 - name: create cassandra hidden directory
   file:
     path: /root/.cassandra
