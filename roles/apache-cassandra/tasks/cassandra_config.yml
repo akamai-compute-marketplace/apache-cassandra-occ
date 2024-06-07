@@ -1,13 +1,4 @@
 ---
-- name: creating cassandra config backup
-  copy:
-    src: "{{ cassandra_config }}"
-    dest: "{{ cassandra_config }}.bak"
-    remote_src: yes
-    owner: cassandra
-    group: cassandra
-    mode: '0644'
-
 - name: generating config secrets
   set_fact:
     keystore_password: "{{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}"
@@ -17,18 +8,15 @@
   run_once: true
   delegate_to: "{{ groups['cassandra_cluster'][0] }}"
 
-- name: updating cassandra.yaml 
-  template:
-    src: cassandra.yaml.j2
-    dest: "{{ cassandra_config }}"
-    owner: cassandra
-    group: cassandra
-    mode: '0644'
-
-- name: stop cassandra service
-  systemd:
-    name: cassandra
-    state: stopped
+- name: update cassandra conf files
+  template: 
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+  loop:
+    - { src: cassandra.yaml.j2, dest: /etc/cassandra/cassandra.yaml }
+    - { src: jvm-server.options.j2, dest: /etc/cassandra/jvm-server.options }
+    - { src: jvm11-server.options.j2, dest: /etc/cassandra/jvm11-server.options }
+    - { src: jvm11-clients.options.j2, dest: /etc/cassandra/jvm11-clients.options }
 
 # removes sample data
 - name: remove cassandra data directory 
@@ -43,3 +31,40 @@
     owner: cassandra
     group: cassandra
     mode: '0755'
+  
+- name: create cassandra hidden directory
+  file:
+    path: /root/.cassandra
+    state: directory
+    mode: "0700"
+
+- name: create conf files in cassandra hidden dir
+  template:
+    src: '{{ item.src }}'
+    dest: '{{ item.dest }}'
+    mode: '0600'
+  loop: 
+    - { src: cqlsh.j2, dest: /root/.cassandra/cqlshrc }
+    - { src: credentials.j2, dest: /root/.cassandra/cqlshrc }
+  notify: restart cassandra
+
+- name: check nodetool status on each cassandra node
+  command: nodetool status
+  register: nodetool_output
+  retries: 10 
+  delay: 20  
+  until: >
+    (nodetool_output.stdout | regex_findall('UN') | length) >= 3
+
+- name: add superuser to db
+  command: >
+    cqlsh {{ cassandra_data.server[0].instance.ip_priv1 }}:9042 -u cassandra -p cassandra -e "CREATE ROLE {{ db_user }} WITH SUPERUSER = true AND LOGIN = true AND PASSWORD = '{{ db_password }}';"
+  run_once: true
+  delegate_to: "{{ groups['cassandra_servers'][0] }}"
+
+- name: alter default user
+  command: >
+    cqlsh {{ cassandra_data.server[0].instance.ip_priv1 }}:9042 -u {{ db_user }} -p {{ db_password }} -e "ALTER ROLE cassandra WITH SUPERUSER = false AND LOGIN = false;"
+  run_once: true
+  delegate_to: "{{ groups['cassandra_servers'][0] }}"  
+  notify: restart cassandra

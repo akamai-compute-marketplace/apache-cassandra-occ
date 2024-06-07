@@ -24,3 +24,7 @@
     state: present
     update_cache: yes
 
+- name: stop cassandra to create ssl and apply configs
+  systemd: 
+    name: cassandra
+    state: stopped

@@ -373,9 +373,3 @@
     dest: '{{ cassandra_truststore }}'
     owner: cassandra
     group: cassandra
-
-# restart cassandra
-- name: restart cassandra service
-  systemd:
-    name: cassandra
-    state: started

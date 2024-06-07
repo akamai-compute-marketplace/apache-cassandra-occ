@@ -4,11 +4,8 @@
 - name: install cassandra
   import_tasks: cassandra_install.yml
 
-- name: configure cassandra
-  import_tasks: cassandra_config.yml
-
 - name: ssl
   import_tasks: cassandra_ssl.yml
 
-- name: post install updates
-  import_tasks: cassandra_users.yml
+- name: configure cassandra
+  import_tasks: cassandra_config.yml

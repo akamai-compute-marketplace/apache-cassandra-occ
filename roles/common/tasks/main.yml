@@ -33,6 +33,7 @@
 - name: install basic packages
   apt:
     pkg:
+    - net-tools
     - htop
     - rsync
     - fail2ban
