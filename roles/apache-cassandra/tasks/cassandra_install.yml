@@ -1,3 +1,4 @@
+---
 # Install Cassandra  
 - name: install java depends
   apt: 

@@ -1,13 +1,4 @@
 ---
-- name: generating config secrets
-  set_fact:
-    keystore_password: "{{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}"
-    truststore_password: "{{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}"
-    cachable: true
-  no_log: true
-  run_once: true
-  delegate_to: "{{ groups['cassandra_cluster'][0] }}"
-
 - name: update cassandra conf files
   template: 
     src: '{{ item.src }}'
