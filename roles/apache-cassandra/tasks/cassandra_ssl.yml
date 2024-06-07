@@ -8,9 +8,11 @@
     group: cassandra
     mode: 0755
 
-- name: set password for ca_key
+- name: set ssl secrets
   set_fact:
     ca_password: "{{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}"
+    keystore_password: "{{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}"
+    truststore_password: "{{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}"
     cachable: true
   no_log: true
   run_once: true

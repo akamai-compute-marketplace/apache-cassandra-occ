@@ -7,7 +7,7 @@
 
 # The name of the cluster. This is mainly used to prevent machines in
 # one logical cluster from joining another.
-cluster_name: {{ cluster_name }}
+cluster_name: '{{ cluster_name }}'
 
 # This defines the number of tokens randomly assigned to this node on the ring
 # The more tokens, relative to other nodes, the larger the proportion of data
@@ -1344,11 +1344,11 @@ server_encryption_options:
   # More advanced defaults:
   protocol: TLS
   store_type: JKS
-   cipher_suites: [
+  # cipher_suites: [
   #   TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
   #   TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
   #   TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA, TLS_RSA_WITH_AES_128_GCM_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA,
-      TLS_RSA_WITH_AES_256_CBC_SHA
+  #    TLS_RSA_WITH_AES_256_CBC_SHA
   # ]
 
 # Configure client-to-server encryption.
@@ -1386,12 +1386,12 @@ client_encryption_options:
   # More advanced defaults:
   protocol: TLS
   store_type: JKS
-    cipher_suites: [
+  #  cipher_suites: [
   #   TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
   #   TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,
   #   TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA, TLS_RSA_WITH_AES_128_GCM_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA,
-      TLS_RSA_WITH_AES_256_CBC_SHA
-  # ]
+  #   TLS_RSA_WITH_AES_256_CBC_SHA
+  #  ]
 
 # internode_compression controls whether traffic between nodes is
 # compressed.
