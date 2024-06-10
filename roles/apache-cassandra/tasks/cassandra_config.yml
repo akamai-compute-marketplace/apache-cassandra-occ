@@ -38,6 +38,7 @@
   run_once: true
   delegate_to: "{{ groups['cassandra_cluster'][0] }}"
 
+# why do we need this?
 - name: create cassandra hidden directory
   file:
     path: /root/.cassandra
@@ -54,13 +55,19 @@
     - { src: credentials.j2, dest: /root/.cassandra/cqlshrc }
   notify: restart cassandra
 
+# we never started the db again
+- name: start cassandra
+  systemd: 
+    name: cassandra
+    state: started
+
 - name: check nodetool status on each cassandra node
   command: nodetool status
   register: nodetool_output
   retries: 10 
   delay: 20  
   until: >
-    (nodetool_output.stdout | regex_findall('UN') | length) >= 3
+    (nodetool_output.stdout | regex_findall('UN') | length) >= cluster_count
 
 - name: add superuser to db
   command: >
