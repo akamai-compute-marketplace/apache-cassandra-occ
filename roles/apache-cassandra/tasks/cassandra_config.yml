@@ -9,6 +9,13 @@
     - { src: jvm11-server.options.j2, dest: /etc/cassandra/jvm11-server.options }
     - { src: jvm11-clients.options.j2, dest: /etc/cassandra/jvm11-clients.options }
 
+# die for dbg
+- name: dbg me
+  fail:
+    msg: 'killing for debug'
+  run_once: true
+  delegate_to: localhost
+
 # removes sample data
 - name: remove cassandra data directory 
   file:

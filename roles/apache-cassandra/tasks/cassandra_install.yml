@@ -1,11 +1,12 @@
 ---
-# Install Cassandra  
-- name: install java depends
-  apt: 
-    pkg: 
-      - openjdk-11-jdk
-      - openjdk-11-jdk-headless
-    state: present
+# Install Cassandra
+# moving this to common:
+#- name: install java depends
+#  apt: 
+#    pkg: 
+#      - openjdk-11-jdk
+#      - openjdk-11-jdk-headless
+#    state: present
 
 - name: download Apache Cassandra GPG key
   get_url:

@@ -41,6 +41,8 @@
     - software-properties-common  
     - gnupg2
     - ssl-cert
+    - openjdk-11-jdk
+    - openjdk-11-jdk-headless
     state: present
 
 - name: fail2ban jail.local
