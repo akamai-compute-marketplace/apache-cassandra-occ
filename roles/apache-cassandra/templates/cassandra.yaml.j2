@@ -549,7 +549,7 @@ seed_provider:
     parameters:
       # seeds is actually a comma-delimited list of addresses.
       # Ex: "<ip1>,<ip2>,<ip3>"
-    - seeds:"{% set server_list = [] %} {%- for server in cassandra_data.server %} {% set _ = server_list.append(server.instance.ip_priv1 ~ \"\" ) %} {%- endfor %}{{ server_list | join(',') | regex_replace(' +,' ',') }}"
+    - seeds: "{% set server_list = [] %}{%- for server in cassandra_data.server %}{% set _ = server_list.append(server.instance.ip_priv1 ~ "" ) %}{%- endfor %}{{ server_list | join(',') | regex_replace(' +,' ',') }}"
  
 # For workloads with more data than can fit in memory, Cassandra's
 # bottleneck will be reads that need to fetch data from
