@@ -1,13 +1,32 @@
 ---
-- name: update cassandra conf files
-  template: 
+#- name: update cassandra conf files
+#  template: 
+#    src: '{{ item.src }}'
+#    dest: '{{ item.dest }}'
+#  loop:
+#    - { src: cassandra.yaml.j2, dest: /etc/cassandra/cassandra.yaml }
+#    - { src: jvm-server.options.j2, dest: /etc/cassandra/jvm-server.options }
+#    - { src: jvm11-server.options.j2, dest: /etc/cassandra/jvm11-server.options }
+#    - { src: jvm11-clients.options.j2, dest: /etc/cassandra/jvm11-clients.options }
+
+- name: update cassandra config
+  template:
+    src: 'templates/cassandra.yaml.j2'
+    dest: '/etc/cassandra/cassandra.yaml'
+  loop: "{{ groups['cassandra_cluster'] }}"
+  run_once: true
+  delegate_to: "{{ item }}"
+  loop_control:
+    index_var: count
+
+- name: moving over other jvm files
+  copy:
     src: '{{ item.src }}'
     dest: '{{ item.dest }}'
   loop:
-    - { src: cassandra.yaml.j2, dest: /etc/cassandra/cassandra.yaml }
-    - { src: jvm-server.options.j2, dest: /etc/cassandra/jvm-server.options }
-    - { src: jvm11-server.options.j2, dest: /etc/cassandra/jvm11-server.options }
-    - { src: jvm11-clients.options.j2, dest: /etc/cassandra/jvm11-clients.options }
+    - { src: files/jvm-server.options.j2, dest: /etc/cassandra/jvm-server.options }
+    - { src: files/jvm11-server.options.j2, dest: /etc/cassandra/jvm11-server.options }
+    - { src: files/jvm11-clients.options.j2, dest: /etc/cassandra/jvm11-clients.options }    
 
 # die for dbg
 #- name: dbg me
