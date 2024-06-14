@@ -88,7 +88,7 @@ function ansible:build {
   # sudo user
   sudo_username: ${SUDO_USERNAME}
   username: ${SUDO_USERNAME}
-  cluster_sizwe: ${CLUSTER_SIZE}
+  cluster_size: ${CLUSTER_SIZE}
   # db user
   db_user: ${DB_USER}
   cassandra_version: 4.1.5
