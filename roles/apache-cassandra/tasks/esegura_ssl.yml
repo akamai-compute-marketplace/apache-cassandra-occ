@@ -97,7 +97,7 @@
     return_content: true
   run_once: true
   delegate_to: "{{ item }}"
-  loop: "{{ groups['cassandra_cluster'] }}"
+  loop: "{{ groups['cassandra_servers'] }}"
   loop_control:
     index_var: count
 
@@ -128,7 +128,7 @@
     group: cassandra
   run_once: true
   delegate_to: "{{ item }}"
-  loop: "{{ groups['cassandra_cluster'] }}"
+  loop: "{{ groups['cassandra_servers'] }}"
   loop_control:
     index_var: count
 
@@ -168,7 +168,7 @@
   register: server_certs
   run_once: true
   delegate_to: "{{ item }}"
-  loop: "{{ groups['cassandra_cluster'] }}"
+  loop: "{{ groups['cassandra_servers'] }}"
   loop_control:
     index_var: count
 
@@ -206,7 +206,7 @@
     group: cassandra    
   run_once: true
   delegate_to: "{{ item }}"
-  loop: "{{ groups['cassandra_cluster'] }}"
+  loop: "{{ groups['cassandra_servers'] }}"
   loop_control:
     index_var: count    
 
@@ -279,4 +279,4 @@
     group: cassandra
   run_once: true
   delegate_to: "{{ item }}"
-  loop: "{{ groups['cassandra_cluster'][1:] }}"
+  loop: "{{ groups['cassandra_servers'][1:] }}"

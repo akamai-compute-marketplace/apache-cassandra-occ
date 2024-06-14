@@ -28,7 +28,7 @@
   template:
     src: 'templates/cassandra.yaml.j2'
     dest: '/etc/cassandra/cassandra.yaml'
-  loop: "{{ groups['cassandra_cluster'] }}"
+  loop: "{{ groups['cassandra_servers'] }}"
   run_once: true
   delegate_to: "{{ item }}"
   loop_control:
@@ -76,7 +76,7 @@
 #    cachable: true
 #  no_log: true
 #  run_once: true
-#  delegate_to: "{{ groups['cassandra_cluster'][0] }}"
+#  delegate_to: "{{ groups['cassandra_servers'][0] }}"
 
 # we can put this in defaults
 - name: create cassandra hidden directory
@@ -107,7 +107,7 @@
   retries: 10 
   delay: 20  
   until: >
-    (nodetool_output.stdout | regex_findall('UN') | length) >= cluster_count
+    (nodetool_output.stdout | regex_findall('UN') | length) >= cluster_size
 
 - name: add superuser to db
   command: >
