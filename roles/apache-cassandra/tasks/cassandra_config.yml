@@ -9,6 +9,21 @@
 #    - { src: jvm11-server.options.j2, dest: /etc/cassandra/jvm11-server.options }
 #    - { src: jvm11-clients.options.j2, dest: /etc/cassandra/jvm11-clients.options }
 
+# this needs to be a variable for the dir only.
+- name: creating cassandra config backup
+  copy:
+    #src: "{{ cassandra_config }}"
+    src: "/etc/cassandra/cassandra.yaml"
+    #dest: "{{ cassandra_config }}.bak"
+    dest: "/etc/cassandra/cassandra.yaml.bak"
+    remote_src: yes
+    owner: cassandra
+    group: cassandra
+    mode: '0644'
+
+# we can use the entire long version of the config. That might be better for exaplaining what's on there.
+# parsing through the short version to make sure the correct opts are there.
+# note to self. Long config is better. Leaving as is and removing cass_short upon cleanup
 - name: update cassandra config
   template:
     src: 'templates/cassandra.yaml.j2'
@@ -19,14 +34,17 @@
   loop_control:
     index_var: count
 
-- name: moving over other jvm files
-  copy:
-    src: '{{ item.src }}'
-    dest: '{{ item.dest }}'
-  loop:
-    - { src: files/jvm-server.options.j2, dest: /etc/cassandra/jvm-server.options }
-    - { src: files/jvm11-server.options.j2, dest: /etc/cassandra/jvm11-server.options }
-    - { src: files/jvm11-clients.options.j2, dest: /etc/cassandra/jvm11-clients.options }    
+# audit to see if we need this.
+# this is default with the install. we don't need
+
+#- name: moving over other jvm files
+#  copy:
+#    src: '{{ item.src }}'
+#    dest: '{{ item.dest }}'
+#  loop:
+#    - { src: files/jvm-server.options.j2, dest: /etc/cassandra/jvm-server.options }
+#    - { src: files/jvm11-server.options.j2, dest: /etc/cassandra/jvm11-server.options }
+#    - { src: files/jvm11-clients.options.j2, dest: /etc/cassandra/jvm11-clients.options }    
 
 # die for dbg
 #- name: dbg me
@@ -35,29 +53,32 @@
 #  run_once: true
 #  delegate_to: localhost
 
+#- name: update data center for node
+
+
 # removes sample data
-- name: remove cassandra data directory 
-  file:
-    path: /var/lib/cassandra/
-    state: absent
+#- name: remove cassandra data directory 
+#  file:
+#    path: /var/lib/cassandra/
+#    state: absent
 
-- name: recreate /var/lib/cassandra directory
-  file:
-    path: /var/lib/cassandra
-    state: directory
-    owner: cassandra
-    group: cassandra
-    mode: '0755'
+#- name: recreate /var/lib/cassandra directory
+#  file:
+#    path: /var/lib/cassandra
+#    state: directory
+#    owner: cassandra
+#    group: cassandra
+#    mode: '0755'
 
-- name: database user secret
-  set_fact:
-    db_password: "{{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}"
-    cachable: true
-  no_log: true
-  run_once: true
-  delegate_to: "{{ groups['cassandra_cluster'][0] }}"
+#- name: database user secret
+#  set_fact:
+#    db_password: "{{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}"
+#    cachable: true
+#  no_log: true
+#  run_once: true
+#  delegate_to: "{{ groups['cassandra_cluster'][0] }}"
 
-# why do we need this?
+# we can put this in defaults
 - name: create cassandra hidden directory
   file:
     path: /root/.cassandra

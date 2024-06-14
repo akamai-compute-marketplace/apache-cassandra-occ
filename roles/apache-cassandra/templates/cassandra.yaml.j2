@@ -1375,7 +1375,7 @@ client_encryption_options:
   optional: false
   # Set keystore and keystore_password to valid keystores if enabled is true
   #keystore: /etc/cassandra/ssl/{{ ansible_facts.hostname }}client-keystore.jks
-  keystore: /etc/cassandra/ssl/{{ cassandra_data.server[count].instance.hostname }}client-keystore.jks
+  keystore: /etc/cassandra/ssl/{{ cassandra_data.server[count].instance.hostname }}-keystore.jks
   keystore_password: {{ keystore_password }}
   # Configure the way Cassandra creates SSL contexts.
   # To use PEM-based key material, see org.apache.cassandra.security.PEMBasedSslContextFactory

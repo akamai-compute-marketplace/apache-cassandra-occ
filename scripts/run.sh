@@ -35,12 +35,16 @@ function secrets {
   local TEMP_ROOT_PASS=$(openssl rand -base64 32)
   local KEYSTORE_PASSWORD=$(openssl rand -base64 32)
   local TRUSTSTORE_PASSWORD=$(openssl rand -base64 32)
+  local CA_PASSWORD=$(openssl rand -base64 32)
+  local DB_PASSWORD=$(openssl rand -base64 32)
   echo "${VAULT_PASS}" > ./.vault-pass
   cat << EOF > ${SECRET_VARS_PATH}
 `ansible-vault encrypt_string "${TEMP_ROOT_PASS}" --name 'root_pass'`
 `ansible-vault encrypt_string "${TOKEN_PASSWORD}" --name 'api_token'`
 `ansible-vault encrypt_string "${KEYSTORE_PASSWORD}" --name 'keystore_password'`
 `ansible-vault encrypt_string "${TRUSTSTORE_PASSWORD}" --name 'truststore_password'`
+`ansible-vault encrypt_string "${CA_PASSWORD}" --name 'ca_password'`
+`ansible-vault encrypt_string "${DB_PASSWORD}" --name 'db_password'`
 EOF
 }
 
@@ -84,9 +88,10 @@ function ansible:build {
   # sudo user
   sudo_username: ${SUDO_USERNAME}
   username: ${SUDO_USERNAME}
-  cluster_count: ${CLUSTER_COUNT}
+  cluster_sizwe: ${CLUSTER_SIZE}
   # db user
   db_user: ${DB_USER}
+  cassandra_version: 4.1.5
   # ssl/tls
   country_name: ${COUNTRY_NAME}
   state_or_province_name: ${STATE_OR_PROVINCE_NAME}

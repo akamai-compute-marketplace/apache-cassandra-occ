@@ -1,6 +1,5 @@
+---
 # linode apache-cassandra ansible playbook
-
-# linodes
 - name: configure apache-cassandra cluster
   hosts: all
   any_errors_fatal: true

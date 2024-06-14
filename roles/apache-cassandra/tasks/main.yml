@@ -1,11 +1,17 @@
 ---
 # roles/apache-cassandra/tasks/main.yml
 
+# done
+- name: configure hostname
+  import_tasks: hostname.yml
+
+# done. Needs version var to pin what we are installing
 - name: install cassandra
   import_tasks: cassandra_install.yml
 
-- name: ssl
-  import_tasks: cassandra_ssl.yml
+# done. come back to orgazine
+- name: create cluster keystores and truststores
+  import_tasks: esegura_ssl.yml
 
-- name: configure cassandra
-  import_tasks: cassandra_config.yml
+#- name: configure cassandra
+#  import_tasks: cassandra_config.yml

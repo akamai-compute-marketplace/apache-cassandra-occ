@@ -1,15 +1,17 @@
-- name: Configuring environment
+---
+- name: configuring environment
   hosts: localhost
   connection: local
   vars_files:
       - group_vars/apache-cassandra/vars
       - group_vars/apache-cassandra/secret_vars
   
-  #vars:
-  #  count: '{{ cluster_size - 1 }}' # UDF
+  vars:
+    count: '{{ cluster_size - 1 }}' # UDF
        
   tasks:
   # generate playbook secrets
+# encrypted in vault. Redux is going to be here
 #  - name: generating playbook secrets
 #    lineinfile:
 #      insertafter: EOF
@@ -24,7 +26,7 @@
 
   - name: creating apache-cassandra cluster
     linode.cloud.instance:
-      label: '{{ instance_prefix }}-{{ item | int + 1 }}-{{ uuid }}'
+      label: '{{ instance_prefix }}{{ item | int + 1 }}-{{ uuid }}'
       api_token: '{{ api_token }}'
       type: '{{ type }}'
       region: '{{ region }}'
@@ -32,18 +34,18 @@
       root_pass: '{{ root_pass }}'
       authorized_keys: '{{ ssh_keys }}'
       private_ip: true
-      #stackscript_id: 1142293
-      #ua_prefix: 'marketplace-apache-cassandra-occ'      
+      #stackscript_id: 0
+      ua_prefix: 'marketplace-apache-cassandra-occ'      
       tags: '{{ linode_tags }}'
       state: present
-    with_sequence: count='{{ cluster_count - 1 }}'
+    with_sequence: count='{{ count }}'
 
   - name: get info about the instances
     linode.cloud.instance_info:
       api_token: '{{ api_token }}'
-      label: '{{ instance_prefix }}-{{ item | int }}-{{ uuid }}'
-    register: cluster_info
-    with_sequence: count='{{ cluster_count }}'
+      label: '{{ instance_prefix }}{{ item | int }}-{{ uuid }}'
+    register: info
+    with_sequence: count='{{ cluster_size }}'
 
   - name: update group_vars
     blockinfile:
@@ -53,13 +55,15 @@
         #jinja2: trim_blocks:False
         cassandra_data:
           server:
-            {%- for count in range(cluster_count | int) %}
-            - cassandra-{{ count }}:
+            {%- for count in range(cluster_size) %}
+            - cassandra{{ count + 1 }}:
               instance:
-                hostname: {{ cluster_info.results[count].instance.label | replace('_', '-') }}
-                ip_pub1: {{ cluster_info.results[count].instance.ipv4[0] }}
-                ip_priv1: {{ cluster_info.results[count].instance.ipv4[1] }}
+                #hostname: {{ info.results[count].instance.label | replace('_', '-') }}
+                hostname: cassandra{{ count + 1 }}
+                ip_pub1: {{ info.results[count].instance.ipv4[0] }}
+                ip_priv1: {{ info.results[count].instance.ipv4[1] }}
             {%- endfor %}
+    loop: "{{ info.results }}"
 
   - name: update inventory
     blockinfile:
@@ -67,11 +71,11 @@
       marker: "# {mark} CASSANDRA LINODES"
       block: |
         #jinja2: trim_blocks:False
-        [cassandra_cluster]
+        [cassandra_servers]
         localhost ansible_connection=local user=root
-        {%- for count in range(cluster_count - 1) %}
-        {{ cluster_info.results[count + 1].instance.ipv4[0] }}
-        {%- endfor %}
+        {%- for count in range(cluster_size - 1) %}
+        {{ info.results[count + 1].instance.ipv4[0] }}
+        {%- endfor %}        
 
   - name: wait for port 22 to become open
     wait_for:
@@ -80,4 +84,4 @@
       search_regex: OpenSSH
       delay: 10
     connection: local
-    with_items: "{{ cluster_info.results }}"
+    with_items: "{{ info.results }}"

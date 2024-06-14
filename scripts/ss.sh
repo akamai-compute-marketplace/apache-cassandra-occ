@@ -21,7 +21,7 @@ fi
 # <UDF name="clusterheader" label="Cluster Settings" default="Yes" header="Yes">
 # <UDF name="add_ssh_keys" label="Add Account SSH Keys to All Nodes?" oneof="yes,no"  default="yes" />
 # <UDF name="cluster_name" label="cassandra cluster name"/>
-# <UDF name="cluster_count" label="cassandra cluster size" default="3" oneof="3,5"/>
+# <UDF name="cluster_size" label="cassandra cluster size" default="3" oneof="3,5"/>
 # <UDF name="client_count" label="Number of clients connecting to cassandra" oneof="1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20">
 
 # git repo

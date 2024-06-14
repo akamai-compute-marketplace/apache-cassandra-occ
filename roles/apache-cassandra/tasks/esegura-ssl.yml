@@ -17,6 +17,12 @@
 #    - '{{ cassandra_ssl_path }}'
 #    - '{{ cassandra_ssl_path }}'
 
+
+# this needs to be severely organized. Coming back to this after everything is running..
+# - common dirs need to exist in defaults
+# - create ssl dirs for ca, req, key, cert, truststore, keystore, etc
+# - upate every task to place files in respective dirs
+
 # create cluster ssl dir
 - name: create ssl directory
   file:
