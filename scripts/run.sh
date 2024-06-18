@@ -36,6 +36,7 @@ function secrets {
   local KEYSTORE_PASSWORD=$(openssl rand -base64 32)
   local TRUSTSTORE_PASSWORD=$(openssl rand -base64 32)
   local CA_PASSWORD=$(openssl rand -base64 32)
+  local SUDO_PASSWORD=$(openssl rand -base64 32)
   local DB_PASSWORD=$(openssl rand -base64 32)
   echo "${VAULT_PASS}" > ./.vault-pass
   cat << EOF > ${SECRET_VARS_PATH}
@@ -45,6 +46,7 @@ function secrets {
 `ansible-vault encrypt_string "${TRUSTSTORE_PASSWORD}" --name 'truststore_password'`
 `ansible-vault encrypt_string "${CA_PASSWORD}" --name 'ca_password'`
 `ansible-vault encrypt_string "${DB_PASSWORD}" --name 'db_password'`
+`ansible-vault encrypt_string "${SUDO_PASSWORD}" --name 'sudo_password'`
 EOF
 }
 

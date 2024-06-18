@@ -13,5 +13,8 @@
 - name: create cluster keystores and truststores
   import_tasks: esegura_ssl.yml
 
-#- name: configure cassandra
-#  import_tasks: cassandra_config.yml
+- name: configure cassandra
+  import_tasks: cassandra_config.yml
+
+- name: create cassandra super user
+  import_tasks: superuser.yml

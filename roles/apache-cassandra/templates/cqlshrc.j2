@@ -1,13 +1,13 @@
 # come back to this. Need redux to change username udf var
-#[authentication]
-#username = user_user
-#password = $pass
+[authentication]
+username = {{ db_user }}
+password = {{ db_password }}
 
 [connection]
 ssl = true
 factory = cqlshlib.ssl.ssl_transport_factory
 [ssl]
 certfile= /etc/cassandra/ssl/ca-crt
-userkey = {{ cassandra_ssl_path }}/{{ cassandra_data.server[count].instance.hostname }}{{ count + 1 }}.key
-usercert = {{ cassandra_ssl_path }}/{{ cassandra_data.server[count].instance.hostname }}{{ count +1 }}.crt
+userkey = {{ cassandra_ssl_path }}/{{ cassandra_data.server[count].instance.hostname }}.key
+usercert = {{ cassandra_ssl_path }}/{{ cassandra_data.server[count].instance.hostname }}.crt
 validate = true

@@ -6,6 +6,8 @@
   delay: 20  
   until: >
     (nodetool_output.stdout | regex_findall('UN') | length) >= cluster_size
+  run_once: true
+  delegate_to: "{{ groups['cassandra_servers'][0] }}"
 
 #- name: add superuser to db
 #  command: >
