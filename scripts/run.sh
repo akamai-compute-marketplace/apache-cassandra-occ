@@ -104,7 +104,7 @@ function ansible:build {
   client_count: ${CLIENT_COUNT}
   # paths
   cassandra_config: '/etc/cassandra/cassandra.yaml'
-  cassandra_ssl_path: '/etc/cassandra/ssl/'
+  cassandra_ssl_path: '/etc/cassandra/ssl'
   cassandra_cacert: '/etc/cassandra/ssl/ca.crt'
   cassandra_cakey: '/etc/cassandra/ssl/ca.key'
   cassandra_cacsr: '/etc/cassandra/ssl/ca-csr'

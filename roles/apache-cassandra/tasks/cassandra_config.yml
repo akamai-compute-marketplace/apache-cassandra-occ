@@ -15,7 +15,7 @@
     #src: "{{ cassandra_config }}"
     src: "/etc/cassandra/cassandra.yaml"
     #dest: "{{ cassandra_config }}.bak"
-    dest: "/etc/cassandra/cassandra.yaml.bak"
+    dest: "/etc/cassandra/cassandra.yaml.original"
     remote_src: yes
     owner: cassandra
     group: cassandra
@@ -85,15 +85,26 @@
     state: directory
     mode: "0700"
 
+#- name: create conf files in cassandra hidden dir
+#  template:
+#    src: '{{ item.src }}'
+#    dest: '{{ item.dest }}'
+#    mode: '0600'
+#  loop: 
+#    - { src: cqlsh.j2, dest: /root/.cassandra/cqlshrc }
+#    - { src: credentials.j2, dest: /root/.cassandra/cqlshrc }
+#  notify: restart cassandra
+
 - name: create conf files in cassandra hidden dir
   template:
-    src: '{{ item.src }}'
-    dest: '{{ item.dest }}'
+    src: templates/cqlshrc.j2
+    dest: /root/.cassandra/cqlshrc
     mode: '0600'
-  loop: 
-    - { src: cqlsh.j2, dest: /root/.cassandra/cqlshrc }
-    - { src: credentials.j2, dest: /root/.cassandra/cqlshrc }
-  notify: restart cassandra
+  run_once: true
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['cassandra_servers'] }}"
+  loop_control:
+    index_var: count
 
 # we never started the db again
 - name: start cassandra
@@ -101,23 +112,23 @@
     name: cassandra
     state: started
 
-- name: check nodetool status on each cassandra node
-  command: nodetool status
-  register: nodetool_output
-  retries: 10 
-  delay: 20  
-  until: >
-    (nodetool_output.stdout | regex_findall('UN') | length) >= cluster_size
-
-- name: add superuser to db
-  command: >
-    cqlsh {{ cassandra_data.server[0].instance.ip_priv1 }}:9042 -u cassandra -p cassandra -e "CREATE ROLE {{ db_user }} WITH SUPERUSER = true AND LOGIN = true AND PASSWORD = '{{ db_password }}';"
-  run_once: true
-  delegate_to: "{{ groups['cassandra_servers'][0] }}"
-
-- name: alter default user
-  command: >
-    cqlsh {{ cassandra_data.server[0].instance.ip_priv1 }}:9042 -u {{ db_user }} -p {{ db_password }} -e "ALTER ROLE cassandra WITH SUPERUSER = false AND LOGIN = false;"
-  run_once: true
-  delegate_to: "{{ groups['cassandra_servers'][0] }}"  
-  notify: restart cassandra
+#- name: check nodetool status on each cassandra node
+#  command: nodetool status
+#  register: nodetool_output
+#  retries: 10 
+#  delay: 20  
+#  until: >
+#    (nodetool_output.stdout | regex_findall('UN') | length) >= cluster_size
+#
+#- name: add superuser to db
+#  command: >
+#    cqlsh {{ cassandra_data.server[0].instance.ip_priv1 }}:9042 -u cassandra -p cassandra -e "CREATE ROLE {{ db_user }} WITH SUPERUSER = true AND LOGIN = true AND PASSWORD = '{{ db_password }}';"
+#  run_once: true
+#  delegate_to: "{{ groups['cassandra_servers'][0] }}"
+#
+#- name: alter default user
+#  command: >
+#    cqlsh {{ cassandra_data.server[0].instance.ip_priv1 }}:9042 -u {{ db_user }} -p {{ db_password }} -e "ALTER ROLE cassandra WITH SUPERUSER = false AND LOGIN = false;"
+#  run_once: true
+#  delegate_to: "{{ groups['cassandra_servers'][0] }}"  
+#  notify: restart cassandra

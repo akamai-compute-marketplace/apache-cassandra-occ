@@ -280,3 +280,14 @@
   run_once: true
   delegate_to: "{{ item }}"
   loop: "{{ groups['cassandra_servers'][1:] }}"
+
+# moving ca crt for local client connection with cqlsh
+- name: propagate ca cert to cluster 
+  copy:
+    src: '{{ cassandra_ssl_path }}/ca-crt'
+    dest: '{{ cassandra_ssl_path }}/ca-crt'
+    owner: cassandra
+    group: cassandra
+  run_once: true
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['cassandra_servers'][1:] }}"
