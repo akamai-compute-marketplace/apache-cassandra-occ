@@ -14,4 +14,4 @@
   roles:
     - common      
     - apache-cassandra
-    #- post
+    - post
