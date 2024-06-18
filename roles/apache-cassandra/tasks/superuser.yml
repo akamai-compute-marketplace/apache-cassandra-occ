@@ -35,6 +35,10 @@
     cqlsh {{ cassandra_data.server[0].instance.ip_priv1 }} -u cassandra -p cassandra --ssl -e "CREATE ROLE {{ db_user }} WITH SUPERUSER = true AND LOGIN = true AND PASSWORD = '{{ db_password }}';"
   run_once: true
   delegate_to: "{{ groups['cassandra_servers'][0] }}"
+  retries: 3
+  delay: 5
+  register: result
+  until: result.rc == 0  
 
 - name: alter default user
   command: >
