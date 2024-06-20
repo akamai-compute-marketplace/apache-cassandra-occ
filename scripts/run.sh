@@ -15,10 +15,10 @@ function cleanup {
 }
 
 # constants
-readonly ROOT_PASS=$(sudo cat /etc/shadow | grep root)
-readonly LINODE_PARAMS=($(curl -sH "Authorization: Bearer ${TOKEN_PASSWORD}" "https://api.linode.com/v4/linode/instances/${LINODE_ID}" | jq -r .type,.region,.image))
-readonly TAGS=$(curl -sH "Authorization: Bearer ${TOKEN_PASSWORD}" "https://api.linode.com/v4/linode/instances/${LINODE_ID}" | jq -r .tags)
-readonly VARS_PATH="./group_vars/apache-cassandra/vars"
+#readonly ROOT_PASS=$(sudo cat /etc/shadow | grep root)
+#readonly LINODE_PARAMS=($(curl -sH "Authorization: Bearer ${TOKEN_PASSWORD}" "https://api.linode.com/v4/linode/instances/${LINODE_ID}" | jq -r .type,.region,.image))
+#readonly TAGS=$(curl -sH "Authorization: Bearer ${TOKEN_PASSWORD}" "https://api.linode.com/v4/linode/instances/${LINODE_ID}" | jq -r .tags)
+#readonly VARS_PATH="./group_vars/apache-cassandra/vars"
 
 # utility functions
 function destroy {
@@ -135,7 +135,7 @@ function build {
   local TEMP_ROOT_PASS=$(openssl rand -base64 32)
   controller_sshkey
 
-  cat << EOF >> ${group_vars}
+  cat << EOF >> ${GROUP_VARS}
 # user vars
 sudo_username: ${SUDO_USERNAME}
 api_token: ${TOKEN_PASSWORD}
