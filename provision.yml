@@ -11,18 +11,17 @@
        
   tasks:
   # generate playbook secrets
-# encrypted in vault. Redux is going to be here
-#  - name: generating playbook secrets
-#    lineinfile:
-#      insertafter: EOF
-#      path: group_vars/apache-cassandra/vars
-#      line: |
-#        truststore_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
-#        keystore_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
-#        ca_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
-#        sudo_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
-#        db_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
-#    no_log: true
+  - name: generating playbook secrets
+    lineinfile:
+      insertafter: EOF
+      path: group_vars/apache-cassandra/vars
+      line: |
+        truststore_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
+        keystore_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
+        ca_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
+        sudo_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
+        db_password: {{ lookup('password', '/dev/null length=25 chars=ascii_letters,digits') }}
+    no_log: true
 
   - name: creating apache-cassandra cluster
     linode.cloud.instance:
