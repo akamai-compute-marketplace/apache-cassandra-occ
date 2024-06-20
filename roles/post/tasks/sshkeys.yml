@@ -30,7 +30,7 @@
     mode: '0600'
   loop:
     - { userdir: '/root', user: 'root' }
-    - { userdir: '/home/{{ username }}', user: '{{ username }}' }
+    - { userdir: '/home/{{ sudo_username }}', user: '{{ sudo_username }}' }
 
 - name: remove ansible from authorized_keys
   lineinfile:
