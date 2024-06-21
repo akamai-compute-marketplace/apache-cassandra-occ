@@ -1330,7 +1330,8 @@ server_encryption_options:
   legacy_ssl_storage_port_enabled: false
   # Set to a valid keystore if internode_encryption is dc, rack or all
   #keystore: /etc/cassandra/ssl/{{ ansible_facts.hostname }}-keystore.jks
-  keystore: /etc/cassandra/ssl/{{ cassandra_data.server[count].instance.hostname }}-keystore.jks
+  #keystore: /etc/cassandra/ssl/{{ cassandra_data.server[count].instance.hostname }}-keystore.jks
+  keystore: {{ cassandra_ssl_keystore_directory }}/{{ cassandra_data.server[count].instance.hostname }}-keystore.jks
   keystore_password: {{ keystore_password }}
   # Configure the way Cassandra creates SSL contexts.
   # To use PEM-based key material, see org.apache.cassandra.security.PEMBasedSslContextFactory
@@ -1340,7 +1341,8 @@ server_encryption_options:
   # Verify peer server certificates
   require_client_auth: true
   # Set to a valid trustore if require_client_auth is true
-  truststore: /etc/cassandra/ssl/server.truststore.jks
+  #truststore: /etc/cassandra/ssl/server.truststore.jks
+  truststore: {{ cassandra_ssl_truststore_directory }}/server.truststore.jks
   truststore_password: {{ truststore_password }}
   # Verify that the host name in the certificate matches the connected host
   require_endpoint_verification: false
@@ -1375,7 +1377,8 @@ client_encryption_options:
   optional: false
   # Set keystore and keystore_password to valid keystores if enabled is true
   #keystore: /etc/cassandra/ssl/{{ ansible_facts.hostname }}client-keystore.jks
-  keystore: /etc/cassandra/ssl/{{ cassandra_data.server[count].instance.hostname }}-keystore.jks
+  #keystore: /etc/cassandra/ssl/{{ cassandra_data.server[count].instance.hostname }}-keystore.jks
+  keystore: {{ cassandra_ssl_keystore_directory }}/{{ cassandra_data.server[count].instance.hostname }}-keystore.jks
   keystore_password: {{ keystore_password }}
   # Configure the way Cassandra creates SSL contexts.
   # To use PEM-based key material, see org.apache.cassandra.security.PEMBasedSslContextFactory
@@ -1385,7 +1388,8 @@ client_encryption_options:
   # Verify client certificates
   require_client_auth: true
   # Set trustore and truststore_password if require_client_auth is true
-  truststore: /etc/cassandra/ssl/server.truststore.jks
+  #truststore: /etc/cassandra/ssl/server.truststore.jks
+  truststore: {{ cassandra_ssl_truststore_directory }}/server.truststore.jks
   truststore_password: {{ truststore_password}}
   # More advanced defaults:
   protocol: TLS
