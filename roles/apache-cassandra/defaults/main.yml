@@ -5,7 +5,8 @@
 #cassandra_cakey: '/etc/cassandra/ssl/ca.key'
 #cassandra_cacsr: '/etc/cassandra/ssl/ca-csr'
 #cassandra_truststore: '/etc/cassandra/ssl/cassandra-truststore.jks'
-#cassandra_datadir: '/var/lib/cassandra'
+
+cassandra_datadir: '/var/lib/cassandra'
 
 # ssl
 cassandra_ssl_directory: /etc/cassandra/ssl
