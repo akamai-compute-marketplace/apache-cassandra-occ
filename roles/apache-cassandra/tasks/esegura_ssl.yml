@@ -52,13 +52,13 @@
 # create root ca for signing
 - name: generate ca key
   community.crypto.openssl_privatekey:
-    path: '{{ cassandra_ssl_path }}/ca-key'
+    path: '{{ cassandra_ssl_ca_directory }}/ca-key'
     passphrase: '{{ ca_password }}'
     cipher: auto
     return_content: true
     owner: cassandra
     group: cassandra
-  no_log: true
+  #no_log: true
   register: ca_key
   run_once: true
   delegate_to: localhost
