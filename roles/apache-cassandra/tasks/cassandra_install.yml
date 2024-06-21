@@ -27,8 +27,21 @@
     state: present
     update_cache: yes
 
-# why do we need to stop the db? it's just running with default params.
-- name: stop cassandra to create ssl and apply configs
+- name: stop cassandra to configure cluster
   systemd: 
     name: cassandra
     state: stopped
+
+# remove datadir to configure cluster with new name
+- name: remove cassandra data directory 
+  file:
+    path: "{{ cassandra_datadir }}"
+    state: absent
+
+- name: create /var/lib/cassandra directory
+  file:
+    path: "{{ cassandra_datadir }}"
+    state: directory
+    owner: cassandra
+    group: cassandra
+    mode: '0755'    
