@@ -1,30 +1,7 @@
 ---
 # create cluster ssl certificates
 
-#- name: create kafka ssl directory
-#  file:
-#    path: "{{ item }}"
-#    state: directory
-#    mode: 0755
-#    owner: cassandra
-#    group: cassandra
-#  loop:
-#    - '{{ kafka_ssl_directory }}'
-#    - '{{ cassandra_ssl_path }}'
-#    - '{{ cassandra_ssl_path }}'
-#    - '{{ cassandra_ssl_path }}'
-#    - '{{ cassandra_ssl_path }}'
-#    - '{{ cassandra_ssl_path }}'
-#    - '{{ cassandra_ssl_path }}'
-
-
-# this needs to be severely organized. Coming back to this after everything is running..
-# - common dirs need to exist in defaults
-# - create ssl dirs for ca, req, key, cert, truststore, keystore, etc
-# - upate every task to place files in respective dirs
-
-
-# create cluster ssl dir
+# create cluster ssl directories
 - name: create cassandra ssl directory
   file:
     path: "{{ item }}"
@@ -41,14 +18,6 @@
     - '{{ cassandra_ssl_keystore_directory }}'
     - '{{ cassandra_ssl_truststore_directory }}'
 
-#- name: create ssl directory
-#  file:
-#    path: '{{ cassandra_ssl_path }}'
-#    state: directory
-#    owner: cassandra
-#    group: cassandra
-#    mode: 0755
-
 # create root ca for signing
 - name: generate ca key
   community.crypto.openssl_privatekey:
@@ -58,7 +27,7 @@
     return_content: true
     owner: cassandra
     group: cassandra
-  #no_log: true
+  no_log: true
   register: ca_key
   run_once: true
   delegate_to: localhost
@@ -97,20 +66,20 @@
     provider: selfsigned
     owner: cassandra
     group: cassandra
-    mode: '0640'
+    mode: 0640
     return_content: true
   register: ca_crt
   run_once: true
   delegate_to: localhost
 
-# gen ssl keys
+# generate ssl keys
 
 - name: generate server key
   community.crypto.openssl_privatekey:
     path: '{{ cassandra_ssl_key_directory }}/{{ cassandra_data.server[count].instance.hostname }}.key'
     owner: cassandra
     group: cassandra
-    mode: '0600'
+    mode: 0600
     return_content: true
   run_once: true
   delegate_to: "{{ item }}"
@@ -123,12 +92,12 @@
     path: '{{ cassandra_ssl_key_directory }}/client{{ item }}.key'
     owner: cassandra
     group: cassandra
-    mode: '0600'
+    mode: 0600
   with_sequence: count="{{ client_count }}"
   run_once: true
   delegate_to: localhost
 
-# gen csrs
+# generate csrs
 
 - name: generate server csr
   community.crypto.openssl_csr:
@@ -180,7 +149,7 @@
     provider: ownca
     owner: cassandra
     group: cassandra
-    mode: '0640'
+    mode: 0640
     return_content: true
   register: server_certs
   run_once: true
@@ -201,7 +170,7 @@
     provider: ownca
     owner: cassandra
     group: cassandra
-    mode: '0640'
+    mode: 0640
     return_content: true
   register: client_certs
   with_sequence: count="{{ client_count }}"
@@ -241,10 +210,7 @@
   with_sequence: count="{{ client_count }}"
   run_once: true
   delegate_to: localhost
-    
-# create truststore (keytool) with client/server certs to single truststore (server.truststore.jks)
 
-# establish chain of trust
 - name: add ca to truststore
   community.general.java_cert:
     cert_path: '{{ cassandra_ssl_ca_directory }}/ca-crt'
@@ -258,35 +224,6 @@
     group: cassandra
   run_once: true
   delegate_to: localhost
-
-    #- name: add server certs to truststore
-    #  community.general.java_cert:
-    #    cert_content: '{{ item.certificate }}'
-    #    keystore_path: '{{ cassandra_ssl_path }}/server.truststore.jks'
-    #    keystore_pass: '{{ truststore_password }}'
-    #    keystore_create: true
-    #    state: present
-    #    cert_alias: '{{ cassandra_data.server[count].instance.hostname }}'
-    #    owner: cassandra
-    #    group: cassandra  
-    #  loop: "{{ server_certs.results }}"
-    #  loop_control:
-    #    index_var: count
-    #  run_once: true
-    #  delegate_to: localhost
-    #      
-    #- name: add client certs to truststore
-    #  community.general.java_cert:
-    #    cert_path: '{{ cassandra_ssl_path }}/client{{ item }}.crt'
-    #    keystore_path: '{{ cassandra_ssl_path }}/server.truststore.jks'
-    #    keystore_pass: '{{ truststore_password }}'
-    #    state: present
-    #    cert_alias: 'client{{ item }}'
-    #    owner: cassandra
-    #    group: cassandra    
-    #  with_sequence: count="{{ client_count }}"
-    #  run_once: true
-    #  delegate_to: localhost
 
 - name: propagate truststore to cluster 
   copy:

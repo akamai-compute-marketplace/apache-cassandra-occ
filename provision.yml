@@ -4,7 +4,6 @@
   connection: local
   vars_files:
       - group_vars/apache-cassandra/vars
-      - group_vars/apache-cassandra/secret_vars
   
   vars:
     count: '{{ cluster_size - 1 }}' # UDF

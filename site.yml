@@ -9,8 +9,6 @@
     local_home: "{{ lookup('env','HOME') }}"
   vars_files:
     - group_vars/apache-cassandra/vars
-    - group_vars/apache-cassandra/secret_vars
-  
   roles:
     - common      
     - apache-cassandra

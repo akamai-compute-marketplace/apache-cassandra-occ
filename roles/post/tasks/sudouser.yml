@@ -3,7 +3,7 @@
 
 - name: create sudo user
   user:
-    name: "{{ sudo_username }}"
+    name: '{{ sudo_username }}'
     shell: /bin/bash
     groups: sudo
     password: "{{ sudo_password | password_hash('sha512') }}"
