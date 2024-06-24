@@ -14,12 +14,6 @@ function cleanup {
   fi
 }
 
-# constants
-#readonly ROOT_PASS=$(sudo cat /etc/shadow | grep root)
-#readonly LINODE_PARAMS=($(curl -sH "Authorization: Bearer ${TOKEN_PASSWORD}" "https://api.linode.com/v4/linode/instances/${LINODE_ID}" | jq -r .type,.region,.image))
-#readonly TAGS=$(curl -sH "Authorization: Bearer ${TOKEN_PASSWORD}" "https://api.linode.com/v4/linode/instances/${LINODE_ID}" | jq -r .tags)
-#readonly VARS_PATH="./group_vars/apache-cassandra/vars"
-
 # utility functions
 function destroy {
   if [ -n "${DISTRO}" ] && [ -n "${DATE}" ]; then
