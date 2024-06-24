@@ -57,44 +57,49 @@ Create a highly available Apache Cassandra cluster using through the Linode Mark
 
 Apache Cassandra is now installed and ready to use!
 
-This playbook generates the the client servers and stores them on the first node in the cluster (cassandra1), you will need to copy them over to your clients in order to connect your clients to your cluster. First, you will want to copy over the client certificate and key along with the root CA certificate to your client server. Once you login to the cassandra 1 node, the certificates can be found in the `/etc/cassandra/ssl` directory. Once you locate the certificates you can rsync them over to your client server. (Be sure to replace $CLIENTIP with the ip address of your client server)
+This playbook creates a 3-5 node cluster using Apache Cassandra. Authentication to the cluster is secured via a user-supplied username. The default `cassandra` database role is dropped and superseded by the new user role provided by the client. In addition, cluster communication is secured via SSL/TLS where keystores are created and used by the cluster.
 
-```
-rsync -avp client1.key client1.crt rootCA.crt root@$CLIENTIP:/etc/cassandra/ssl
-```
+Both certificates and keystores can be found on every node in the `/etc/cassandra/ssl` directory. Only the first Cassandra server will have client certificates. This playbook also creates *_n_* amount of client certificates so that applications can connect to the Cassandra cluster.
 
-Next, you'll want to configure your cqlshrc file to connect your client to your cassandra cluster. By default, the file is located in user’s home directory at ~/.cassandra/cqlsh, but a custom location can be specified with the --cqlshrc option. You can review the configuration options found in the link below:
+We can connect to Cassandra using `cqlsh` using client or server certificates. You will need 4 components in order to connect to the cluster:
 
-https://github.com/apache/cassandra/blob/trunk/conf/cqlshrc.sample
+- Username and password created by the playbook. You can find the credentials in '/home/admin/.credentials'. Assumming that you created a user called `admin'.
+- Client certificate
+- Client key
+- CA certificate
 
-A basic example to get started can look as follows:
+To start, on the client node, create the following directory, `/home/admin/cassandra_ssl`.  In this example we are assuming that there is a system user called `admin`. 
 
+Next, on the first Cassandra node, copy the content of `/etc/cassandra/ssl/cert/client1.crt`, `/etc/cassandra/ssl/cert/client1.crt` and `/etc/cassandra/ssl/ca/ca.crt` and place it in the `/home/admin/cassandra_ssl` we just created.
+
+We will need to create a Cassandra resource file to use our client certificate. Create the the `/home/admin/.cassandra` directory. Create a file with the following contents:
 ```
 [connection]
 ssl = true
 factory = cqlshlib.ssl.ssl_transport_factory
 [ssl]
-certfile= /etc/cassandra/ssl/rootCA.crt
-userkey = /etc/cassandra/ssl/client1_key.key
-usercert = /etc/cassandra/ssl/client1_cert.crt
+certfile = /home/admin/cassandra_ssl/ca.crt
+userkey = /home/admin/cassandra_ssl/client1.key
+usercert = /home/admin/cassandra_ssl/client1.crt
 validate = true
-
-```
-Next, ensure that you update your `/etc/hosts` so you have host resolution. For example:
-
-```
-192.168.139.160 cassandra1
-192.168.201.13 cassandra2
-192.168.230.83 cassandra3
 ```
 
-From here you can test connection by logging into your cassandra1 from your client server. (Replace $DB-USER with the Cassandra Database user entered before the deployment)
+Lastly, we connect to one of the Cassandra servers using `cqlsh`:
 
 ```
-cqlsh cassandra1 -u $DB-USER -p --ssl
+cqlsh 192.168.139.160 -u superuser --ssl
 ```
 
-You can repeat this process for the remainder of the client nodes.
+Please replace `192.168.139.160` with the private IP address of one of the Cassandra nodes and `superuser` with the user you provided at the start of the cluster. Once you are connected and enter the password at prompt, you have authenticated to the cluster!
+
+```
+Connected to Cassandra Cluster at 192.168.139.160:9042
+[cqlsh 6.1.0 | Cassandra 4.1.5 | CQL spec 3.4.6 | Native protocol v5]
+Use HELP for help.
+superadmin@cqlsh>
+```
+
+You can distribute the remainder of client certifcates to the remainder of the nodes. Enjoy!
 
 ## Software Included
 
