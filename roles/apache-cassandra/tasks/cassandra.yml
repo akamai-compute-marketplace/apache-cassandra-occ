@@ -20,6 +20,14 @@
   loop_control:
     index_var: count
 
+- name: update data center region
+  lineinfile:
+    path: /etc/cassandra/cassandra-rackdc.properties 
+    regexp: '^dc=dc1$'
+    line: 'dc={{ region }}'
+  run_once: true
+  delegate_to: localhost
+
 - name: create cassandra hidden directory
   file:
     path: /root/.cassandra

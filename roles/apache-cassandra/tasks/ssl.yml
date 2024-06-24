@@ -21,7 +21,7 @@
 # create root ca for signing
 - name: generate ca key
   community.crypto.openssl_privatekey:
-    path: '{{ cassandra_ssl_ca_directory }}/ca-key'
+    path: '{{ cassandra_ssl_ca_directory }}/ca.key'
     passphrase: '{{ ca_password }}'
     cipher: auto
     return_content: true
@@ -34,8 +34,8 @@
 
 - name: generate ca csr
   community.crypto.openssl_csr:
-    path: '{{ cassandra_ssl_ca_directory }}/ca-csr'
-    privatekey_path: '{{ cassandra_ssl_ca_directory }}/ca-key'
+    path: '{{ cassandra_ssl_ca_directory }}/ca.csr'
+    privatekey_path: '{{ cassandra_ssl_ca_directory }}/ca.key'
     privatekey_passphrase: '{{ ca_password }}'
     country_name: '{{ country_name }}'
     state_or_province_name: '{{ state_or_province_name }}'
@@ -58,10 +58,10 @@
 
 - name: generate ca crt
   community.crypto.x509_certificate:
-    path: '{{ cassandra_ssl_ca_directory }}/ca-crt'
-    privatekey_path: '{{ cassandra_ssl_ca_directory }}/ca-key'
+    path: '{{ cassandra_ssl_ca_directory }}/ca.crt'
+    privatekey_path: '{{ cassandra_ssl_ca_directory }}/ca.key'
     privatekey_passphrase: '{{ ca_password }}'
-    csr_path: '{{ cassandra_ssl_ca_directory }}/ca-csr'
+    csr_path: '{{ cassandra_ssl_ca_directory }}/ca.csr'
     selfsigned_not_after: +3650d
     provider: selfsigned
     owner: cassandra
@@ -163,8 +163,8 @@
     path: '{{ cassandra_ssl_cert_directory }}/client{{ item }}.crt'
     privatekey_path: '{{ cassandra_ssl_key_directory }}/client{{ item }}.key'
     csr_path: '{{ cassandra_ssl_req_directory }}/client{{ item }}.csr'
-    ownca_path: '{{ cassandra_ssl_ca_directory }}/ca-crt'
-    ownca_privatekey_path: '{{ cassandra_ssl_ca_directory }}/ca-key'
+    ownca_path: '{{ cassandra_ssl_ca_directory }}/ca.crt'
+    ownca_privatekey_path: '{{ cassandra_ssl_ca_directory }}/ca.key'
     ownca_privatekey_passphrase: '{{ ca_password }}'
     ownca_not_after: +3650d
     provider: ownca
@@ -213,7 +213,7 @@
 
 - name: add ca to truststore
   community.general.java_cert:
-    cert_path: '{{ cassandra_ssl_ca_directory }}/ca-crt'
+    cert_path: '{{ cassandra_ssl_ca_directory }}/ca.crt'
     keystore_path: '{{ cassandra_ssl_truststore_directory }}/server.truststore.jks'
     keystore_pass: '{{ truststore_password }}'
     keystore_create: true
@@ -238,8 +238,8 @@
 # moving ca crt for local client connection with cqlsh
 - name: propagate ca cert to cluster 
   copy:
-    src: '{{ cassandra_ssl_ca_directory }}/ca-crt'
-    dest: '{{ cassandra_ssl_ca_directory }}/ca-crt'
+    src: '{{ cassandra_ssl_ca_directory }}/ca.crt'
+    dest: '{{ cassandra_ssl_ca_directory }}/ca.crt'
     owner: cassandra
     group: cassandra
   run_once: true
