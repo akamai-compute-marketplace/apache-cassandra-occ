@@ -132,7 +132,6 @@
   delegate_to: localhost
 
 # sign cert with ca and get client cert
-
 - name: generate server cert signed with ca cert
   community.crypto.x509_certificate:
     path: '{{ cassandra_ssl_cert_directory }}/{{ cassandra_data.server[count].instance.hostname }}.crt'
