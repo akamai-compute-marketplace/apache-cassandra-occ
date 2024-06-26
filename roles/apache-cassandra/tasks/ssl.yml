@@ -95,7 +95,6 @@
   delegate_to: localhost
 
 # generate csrs
-
 - name: generate server csr
   community.crypto.openssl_csr:
     path: '{{ cassandra_ssl_req_directory }}/{{ cassandra_data.server[count].instance.hostname }}.csr'
