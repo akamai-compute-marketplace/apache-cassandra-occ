@@ -1,6 +1,4 @@
 ---
-# create cluster ssl certificates
-
 # create cluster ssl directories
 - name: create cassandra ssl directory
   file:
