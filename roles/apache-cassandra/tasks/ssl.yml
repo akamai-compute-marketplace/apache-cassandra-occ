@@ -71,7 +71,6 @@
   delegate_to: localhost
 
 # generate ssl keys
-
 - name: generate server key
   community.crypto.openssl_privatekey:
     path: '{{ cassandra_ssl_key_directory }}/{{ cassandra_data.server[count].instance.hostname }}.key'
