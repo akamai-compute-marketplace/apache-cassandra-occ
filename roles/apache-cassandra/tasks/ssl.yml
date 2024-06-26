@@ -175,7 +175,6 @@
   delegate_to: localhost
 
 # generate pkcs12 file from cert keypair
-
 - name: create server pcks12 file from
   community.crypto.openssl_pkcs12:
     path: '{{ cassandra_ssl_keystore_directory }}/{{ cassandra_data.server[count].instance.hostname }}-keystore.jks'
